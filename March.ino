@@ -1,9 +1,27 @@
 /*
- March
-  Oct 2, 2018
-  Copyright (C) 2018 Nolan Gams,
-  All rights reserved.
+March
 
+MIT License
+
+Copyright (c) 2018 Nolan Gams
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 */
 
@@ -105,29 +123,27 @@ void mainGame() {
     //
 
     //button actions
-    if (arduboy.pressed(LEFT_BUTTON) and leftbuffer == 0) {
+    if (arduboy.pressed(LEFT_BUTTON) && leftbuffer == 0) {
       leftbuffer = 1; 
       unitSelect--;
     }
-    if (arduboy.pressed(RIGHT_BUTTON) and rightbuffer == 0) {
+    if (arduboy.pressed(RIGHT_BUTTON) && rightbuffer == 0) {
       rightbuffer = 1; 
       unitSelect++;
     }
-    if (arduboy.pressed(UP_BUTTON) and upbuffer == 0) {
+    if (arduboy.pressed(UP_BUTTON) && upbuffer == 0) {
       upbuffer = 1; 
       lanePoint--;
     }
-    if (arduboy.pressed(DOWN_BUTTON) and downbuffer == 0) {
+    if (arduboy.pressed(DOWN_BUTTON) && downbuffer == 0) {
       downbuffer = 1; 
       lanePoint++;
     }
-    if (arduboy.pressed(A_BUTTON) and abuffer == 0) {
+    if (arduboy.pressed(A_BUTTON) && abuffer == 0) {
       abuffer = 1;
       placeUnit();
       if(playerunitcount < UNIT_COUNT && lanePoint > 0 && lanePoint < 6){
        for(byte x = 0; x <= UNIT_COUNT; x++) {
-          
-          
           if( AllyUnits[x].active == false ){
              AllyUnits[x].setType(unitSelect);
              AllyUnits[x].setLane(lanePoint-1);
@@ -139,7 +155,7 @@ void mainGame() {
         }
        }
     }
-    if (arduboy.pressed(B_BUTTON) and abuffer == 0) {
+    if (arduboy.pressed(B_BUTTON) && abuffer == 0) {
       bbuffer = 1; 
       pause= true;
     }
@@ -276,10 +292,10 @@ void updateGame() {
    boolean checkSquareForUnit(byte inlane, byte inpos, byte inteam){
       boolean isTrue = false;
       for(byte x = 0; x <= UNIT_COUNT; x++){
-        if ( AllyUnits[x].pos == inpos and AllyUnits[x].lane == inlane and inteam == 1){
+        if ( AllyUnits[x].pos == inpos && AllyUnits[x].lane == inlane && inteam == 1){
           isTrue = true;
         }
-        if ( EnemUnits[x].pos == inpos and EnemUnits[x].lane == inlane and inteam == 2){
+        if ( EnemUnits[x].pos == inpos && EnemUnits[x].lane == inlane && inteam == 2){
           isTrue = true;
         }
       }
@@ -308,22 +324,3 @@ void updateGame() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////Game Over///////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
