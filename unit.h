@@ -19,15 +19,7 @@ public:
 	bool action;
 	bool active = false;
 
-	void kill(void)
-	{
-		hp = 0;
-		active = false;
-		lane = 0;
-		pos = 0;
-		type = 0;
-		dmg = 0;
-	}
+
 
 	void setSpd(uint8_t inSpd){spd = inSpd;}
 	void setSpdBuffer(uint8_t inSB){spdbuffer = inSB;}
@@ -39,6 +31,54 @@ public:
 	void setDmg(uint8_t inDmg){dmg = inDmg;}
 	void setSide(uint8_t inSide){side = inSide;}
 	void setRge(uint8_t inRge){rge = inRge;}
-	void setType(uint8_t inType){type = inType;}
+  
+  //this will set the  
+	void setType(uint8_t inType){
+	    type = inType;
+      spdbuffer = 0;
+      if(side == 1)
+      {
+        switch(type)
+          {
+            case 0:
+              dmg = 3;
+              spd = 3;
+              break;
+            case 1:
+              dmg = 1;
+              spd = 2;
+              break;
+          }
+      }
+      if(side == 2)
+      {
+        switch(type)
+          {
+            case 0:
+              dmg = 1;
+              spd = 3;
+              break;
+            case 1:
+              dmg = 1;
+              spd = 2;
+              break;
+          }
+      }
+      
+      
+	}
+  
+  void kill(void)
+  {
+    hp = 0;
+    active = false;
+    lane = 0;
+    pos = 0;
+    type = 0;
+    dmg = 0;
+    rge = 0;
+    spd = 0;
+    spdbuffer = 0;
+  }
 };
 

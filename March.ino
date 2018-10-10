@@ -43,10 +43,10 @@ uint8_t tempo = 10;
 uint8_t stepCounter = 0;
 uint8_t currentPlayer = 1;
 
-int gold = 0;
+int gold = 300;
 int health = 10;
 int playerunitcount = 0;
-
+int enemyunitcount = 0;
 long score = 0;
 
 bool sound = false;
@@ -62,12 +62,12 @@ void setup()
 	arduboy.begin();
 	arduboy.setFrameRate(30);
 	arduboy.initRandomSeed();
-
+ 
 	for(uint8_t i = 0; i < UNIT_COUNT; ++i )
 	{
 		AllyUnits[i].setSide(1);
 		EnemUnits[i].setSide(2);
-	}
+	}     
 }
 
 void loop()
@@ -90,30 +90,55 @@ void loop()
 	arduboy.display();
 }
 
-constexpr uint8_t minUnit = 0;
-constexpr uint8_t maxUnit = 6;
+constexpr uint8_t minAllyUnit = 0;
+constexpr uint8_t maxAllyUnit = 6;
 
 // This function will draw a single ally unit.
-void drawUnit(int x, int y, uint8_t unitType)
+void drawAllyUnit(int x, int y, uint8_t unitType)
 {
 	static const uint8_t * const unitIcons[] PROGMEM =
 	{
 		exsplodie, swordie, spearie, axie, halie, bowie, merchant,
 	};
 
-	if(unitType <= maxUnit)
+	if(unitType <= maxAllyUnit)
 	{
 		const uint8_t * image = reinterpret_cast<const uint8_t *>(pgm_read_ptr(&unitIcons[unitType]));
 		arduboy.drawSlowXYBitmap(x, y, image, 9, 10, WHITE);
 	}
+}
+constexpr uint8_t minEnemUnit = 0;
+constexpr uint8_t maxEnemUnit = 6;
+
+// This function will draw a single Enemy unit.
+void drawEnemUnit(int x, int y, uint8_t unitType)
+{
+  static const uint8_t * const unitIcons[] PROGMEM =
+  {
+    zomb,skele,crab,demon,golem,witch,horror,
+  };
+
+  if(unitType <= maxEnemUnit)
+  {
+    const uint8_t * image = reinterpret_cast<const uint8_t *>(pgm_read_ptr(&unitIcons[unitType]));
+    arduboy.drawSlowXYBitmap(x, y, image, 9, 10, WHITE);
+  }
 }
 
 // This function will draw both ally and enemy units on the field.
 void drawUnits(void)
 {
 	for(uint8_t i = 0; i < UNIT_COUNT; ++i)
+  {
 		if(AllyUnits[i].active)
-			drawUnit((AllyUnits[i].pos * 5) + 4 , AllyUnits[i].lane * 10, AllyUnits[i].type);
+    {
+			drawAllyUnit((AllyUnits[i].pos * 5) + 4 , AllyUnits[i].lane * 10, AllyUnits[i].type);
+    }
+    if(EnemUnits[i].active)
+    {
+      drawEnemUnit((EnemUnits[i].pos * 5) + 4 , EnemUnits[i].lane * 10, EnemUnits[i].type);
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,23 +159,23 @@ void mainGame()
 		arduboy.print(health);
 
 		// This handles the unit image that showes on the right side of the screen
-		drawUnit(107, 13, unitSelect);
+		drawAllyUnit(107, 13, unitSelect);
 
 		//button actions
 		if (arduboy.justPressed(LEFT_BUTTON))
 		{
-			if(unitSelect > minUnit)
+			if(unitSelect > minAllyUnit)
 				--unitSelect;
 			else
-				unitSelect = maxUnit;
+				unitSelect = maxAllyUnit;
 		}
 	
 		if (arduboy.justPressed(RIGHT_BUTTON))
 		{
-			if(unitSelect < maxUnit)
+			if(unitSelect < maxAllyUnit)
 				++unitSelect;
 			else
-				unitSelect = minUnit;
+				unitSelect = minAllyUnit;
 		}
 
 		if (arduboy.justPressed(UP_BUTTON))
@@ -189,7 +214,7 @@ void mainGame()
 
 		drawUnits();
 		arduboy.setCursor(36, 39);
-		arduboy.print(playerunitcount);
+		//arduboy.print(playerunitcount);
 	}
 	else
 	{
@@ -238,6 +263,7 @@ void updateGame()
 			break;
 		case 2:
 			updateComputerUnits();	
+      enemyHandler();
 			currentPlayer = 1;
 			break;
 	}
@@ -254,16 +280,34 @@ void updatePlayerUnits()
 				AllyUnits[i].kill();
 				--playerunitcount;
 			}
-			else
+     else if(checkSquareForUnit(AllyUnits[i].lane,AllyUnits[i].pos+1,0))
+        continue;
+		 else
 				AllyUnits[i].setPos(AllyUnits[i].pos + 1);
+
+
+        
 		}
 }
 
 // This function will do a for loop hat will update the enemy units.
 void updateComputerUnits(void)
 {
+    for(uint8_t i = 0; i < UNIT_COUNT; ++i)
+    if(EnemUnits[i].active)
+    {
+      if(EnemUnits[i].pos == 0)
+      {
+        EnemUnits[i].kill();
+        --enemyunitcount;
+      }
+      else if(checkSquareForUnit(EnemUnits[i].lane,EnemUnits[i].pos-1,0))
+        continue;
+      else
+        EnemUnits[i].setPos(EnemUnits[i].pos - 1);
+    }
 }
-
+ 
 // This function will place a unit on the field in the lane that the player wants.
 // If will first check if the maximum amount of units have been reached (playerunitcount < UNIT_COUNT).
 // It will then check if there is already a unit there (enemy or ally).
@@ -283,14 +327,69 @@ void placeUnit(void)
 			break;
 		}
 }
-
 // This function checks a square to see if a particular unit is in it.
 bool checkSquareForUnit(uint8_t lane, uint8_t pos, uint8_t team)
 {
 	for(uint8_t i = 0; i < UNIT_COUNT; ++i)
-		if ( AllyUnits[i].pos == pos && AllyUnits[i].lane == lane)
-			if(team == 1 || team == 2)
-				return true;
+		//if ( AllyUnits[i].pos == pos && AllyUnits[i].lane == lane)
+			  switch(team)
+        {
+          case 0:
+            if ( AllyUnits[i].pos == pos && AllyUnits[i].lane == lane || EnemUnits[i].pos == pos && EnemUnits[i].lane == lane)
+              return true;
+              break;
+          case 1:
+            if( AllyUnits[i].pos == pos && AllyUnits[i].lane == lane )
+              return true;
+              break;
+          case 2:
+            if( EnemUnits[i].pos == pos && EnemUnits[i].lane == lane )
+              return true;
+              break;
+        }
 
 	return false;
 }
+
+// This handles the spawning of the enemy units. 
+
+uint8_t enemIntencity = 1;
+uint8_t eventCountdown = 0;
+uint8_t enemUnitSpawnBuffer = 10;
+uint8_t enemUnitSpawnCounter = 5;
+void enemyHandler()
+{
+  uint8_t d100 = random(100);
+    if(enemUnitSpawnCounter == enemUnitSpawnBuffer && enemyunitcount < UNIT_COUNT)
+    {
+      spawnEnemy();
+      enemUnitSpawnCounter = 0;
+    }
+    else
+    {
+      ++enemUnitSpawnCounter;
+    }
+}
+
+
+void spawnEnemy()
+{
+    for(uint8_t i = 0; i < UNIT_COUNT; ++i)
+    {
+      if(EnemUnits[i].active)
+        continue;
+
+      EnemUnits[i].setType(0);
+      EnemUnits[i].setLane(random(5));
+      EnemUnits[i].setPos(15);
+      EnemUnits[i].setActivity(true);
+      ++enemyunitcount;
+      break;
+    }  
+}
+void enemyEvent()
+{
+
+  
+}
+
