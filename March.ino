@@ -65,8 +65,8 @@ void setup()
  
 	for(uint8_t i = 0; i < UNIT_COUNT; ++i )
 	{
-		AllyUnits[i].setSide(1);
-		EnemUnits[i].setSide(2);
+		AllyUnits[i].setSide(1, i);
+		EnemUnits[i].setSide(2, i);
 	}     
 }
 
@@ -90,7 +90,7 @@ void loop()
 	arduboy.display();
 }
 
-constexpr uint8_t minAllyUnit = 0;
+constexpr uint8_t minAllyUnit = 1;
 constexpr uint8_t maxAllyUnit = 6;
 
 // This function will draw a single ally unit.
@@ -140,6 +140,11 @@ void drawUnits(void)
     }
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////Opening Menu//////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////Main Game///////////////////////////////////////////////////////
@@ -245,11 +250,13 @@ void mainGame()
 			pause = false;
 	}
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////Game Over///////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////Functions///////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // This function will check to see whose turn it is to move.
 // Then it will set currentPlayer to the next player's turn.
 // This function should only be called once a step is initiated.
@@ -259,16 +266,51 @@ void updateGame()
 	{
 		case 1:
 			updatePlayerUnits();
+      playerAttack();
 			currentPlayer = 2;
 			break;
 		case 2:
 			updateComputerUnits();	
+      //enemyAttack();
       enemyHandler();
 			currentPlayer = 1;
 			break;
 	}
 }
 
+void playerAttack()
+{
+  for(uint8_t i = 0; i < UNIT_COUNT; ++i)
+    {
+      for(uint8_t n = 0; n < UNIT_COUNT; ++n)
+      {
+        if(!EnemUnits[n].active)
+          continue;
+        if(EnemUnits[n].lane == AllyUnits[i].lane &&
+           EnemUnits[n].pos - 1 < AllyUnits[i].pos + AllyUnits[i].rge)
+        {
+          EnemUnits[n].poke(AllyUnits[i].dmg);
+        }
+      }
+    }
+}
+
+void enemyAttack()
+{
+  for(uint8_t i = 0; i < UNIT_COUNT; ++i)
+    {
+      for(uint8_t n = 0; n < UNIT_COUNT; ++n)
+      {
+        if(!AllyUnits[n].active)
+          continue;
+        if(AllyUnits[n].lane == EnemUnits[i].lane &&
+           AllyUnits[n].pos+1 > EnemUnits[i].pos - EnemUnits[i].rge)
+        {
+          AllyUnits[n].poke(EnemUnits[i].dmg);
+        }
+      }
+    }  
+}
 // This function will do a for loop that will update the player's units.
 void updatePlayerUnits()
 {
@@ -284,12 +326,8 @@ void updatePlayerUnits()
         continue;
 		 else
 				AllyUnits[i].setPos(AllyUnits[i].pos + 1);
-
-
-        
 		}
 }
-
 // This function will do a for loop hat will update the enemy units.
 void updateComputerUnits(void)
 {
@@ -307,13 +345,11 @@ void updateComputerUnits(void)
         EnemUnits[i].setPos(EnemUnits[i].pos - 1);
     }
 }
- 
 // This function will place a unit on the field in the lane that the player wants.
 // If will first check if the maximum amount of units have been reached (playerunitcount < UNIT_COUNT).
-// It will then check if there is already a unit there (enemy or ally).
 void placeUnit(void)
 {
-	if((playerunitcount < UNIT_COUNT) && (lanePoint > 0) && (lanePoint < 6))
+	if((playerunitcount < UNIT_COUNT) && (lanePoint > 0) && (lanePoint < 6) && !checkSquareForUnit(lanePoint - 1 , 0 , 0))
 		for(uint8_t i = 0; i < UNIT_COUNT; ++i)
 		{
 			if(AllyUnits[i].active)
@@ -347,7 +383,6 @@ bool checkSquareForUnit(uint8_t lane, uint8_t pos, uint8_t team)
               return true;
               break;
         }
-
 	return false;
 }
 
@@ -355,8 +390,8 @@ bool checkSquareForUnit(uint8_t lane, uint8_t pos, uint8_t team)
 
 uint8_t enemIntencity = 1;
 uint8_t eventCountdown = 0;
-uint8_t enemUnitSpawnBuffer = 10;
-uint8_t enemUnitSpawnCounter = 5;
+uint8_t enemUnitSpawnBuffer = 1;
+uint8_t enemUnitSpawnCounter = 0;
 void enemyHandler()
 {
   uint8_t d100 = random(100);
@@ -371,7 +406,6 @@ void enemyHandler()
     }
 }
 
-
 void spawnEnemy()
 {
     for(uint8_t i = 0; i < UNIT_COUNT; ++i)
@@ -380,16 +414,11 @@ void spawnEnemy()
         continue;
 
       EnemUnits[i].setType(0);
-      EnemUnits[i].setLane(random(5));
+      //EnemUnits[i].setLane(random(5));
+      EnemUnits[i].setLane(2);
       EnemUnits[i].setPos(15);
       EnemUnits[i].setActivity(true);
       ++enemyunitcount;
       break;
     }  
 }
-void enemyEvent()
-{
-
-  
-}
-
